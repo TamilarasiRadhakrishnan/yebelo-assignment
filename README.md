@@ -1,5 +1,10 @@
 # yebelo-assignment
 yebelo-assignment
+ HEAD
+
+# yebelo-assignment
+yebelo-assignment
+28a47f8 (Save local changes before pull)
 Fullstack Developer Technical Assignment
 Overview
 This assignment evaluates your ability to rapidly learn new technologies and solve complex problems using AI tools. We expect you to leverage AI assistants (ChatGPT, Claude, Copilot, etc.) throughout this process, as this reflects real-world development practices.
