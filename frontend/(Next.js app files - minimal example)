@@ -1,0 +1,52 @@
+import { useEffect, useState } from "react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer } from "recharts";
+
+type RsiMsg = { token_address: string; rsi: number; timestamp: string; }
+
+export default function Home() {
+  const [dataMap, setDataMap] = useState<Record<string, RsiMsg[]>>({});
+  const [selected, setSelected] = useState<string | null>(null);
+
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:4000");
+    ws.onmessage = (ev) => {
+      try {
+        const msg: RsiMsg = JSON.parse(ev.data);
+        setDataMap(prev => {
+          const arr = (prev[msg.token_address] || []).concat(msg).slice(-100);
+          return { ...prev, [msg.token_address]: arr };
+        });
+        if (!selected) setSelected(msg.token_address);
+      } catch (e) { console.error("Parse error", e); }
+    };
+    return () => ws.close();
+  }, [selected]);
+
+  const listTokens = Object.keys(dataMap);
+  const series = selected ? (dataMap[selected] || []) : [];
+
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>YEBELO — RSI Dashboard</h1>
+      <div>
+        <label>Token: </label>
+        <select value={selected || ""} onChange={(e) => setSelected(e.target.value)}>
+          <option value="">Select</option>
+          {listTokens.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </div>
+      <div style={{ width: "100%", height: 360, marginTop: 20 }}>
+        <ResponsiveContainer>
+          <LineChart data={series}>
+            <XAxis dataKey="timestamp" tickFormatter={(t) => new Date(t).toLocaleTimeString()} />
+            <YAxis domain={[0, 100]} />
+            <Tooltip labelFormatter={(l) => new Date(l).toLocaleString()} />
+            <ReferenceLine y={70} strokeDasharray="3 3" />
+            <ReferenceLine y={30} strokeDasharray="3 3" />
+            <Line dataKey="rsi" type="monotone" dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
